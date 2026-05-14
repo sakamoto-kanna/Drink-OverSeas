@@ -16,22 +16,28 @@ INSERT INTO products (name, price, image) VALUES
 ('Whole coffee beans', 18000, 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&q=80&w=600'),
 ('Drip Coffee kit', 24000, 'https://images.unsplash.com/photo-1544787210-2827443cb69b?auto=format&fit=crop&q=80&w=600');
 
--- 사용자 인증 정보 테이블
+-- 기존 유저 테이블 확장
 CREATE TABLE IF NOT EXISTS USER_AUTH (
   LOGIN_ID TEXT PRIMARY KEY,
   PASSWORD TEXT NOT NULL,
-  NAME TEXT NOT NULL
-  
+  NAME TEXT NOT NULL,
+  EMAIL TEXT,
+  PHONE TEXT,
+  ADDRESS TEXT,
+  CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 사용자 다중 권한(Role) 관리 테이블 (1대다 관계)
+-- 사용자 권한 테이블 (이건 그대로 유지하거나 새로 작성)
 CREATE TABLE IF NOT EXISTS USER_ROLES (
   LOGIN_ID TEXT,
   ROLE_NAME TEXT NOT NULL,
   FOREIGN KEY(LOGIN_ID) REFERENCES USER_AUTH(LOGIN_ID)
 );
 
--- 테스트용 더미 유저 추가 (비밀번호는 원래 암호화해야 하지만, 지금은 1234로 테스트)
-INSERT INTO USER_AUTH (LOGIN_ID, PASSWORD, NAME) VALUES ('admin', '1234', '관리자');
+-- 테스트용 관리자 계정
+INSERT INTO USER_AUTH (LOGIN_ID, PASSWORD, NAME, EMAIL, PHONE, ADDRESS) 
+VALUES ('admin', 'admin123', '관리자', 'admin@dos.com', '010-0000-0000', 'Daejeon, South Korea');
+
+-- 권한은 그대로 유지
 INSERT INTO USER_ROLES (LOGIN_ID, ROLE_NAME) VALUES ('admin', 'ROLE_USER');
 INSERT INTO USER_ROLES (LOGIN_ID, ROLE_NAME) VALUES ('admin', 'ROLE_ADMIN');

@@ -1,18 +1,38 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
-const NAV_ITEMS = ['SHOP', 'ABOUT', 'NOTICE', 'CONTACT'];
+import { useRouter } from 'next/navigation';;
+
+const NAV_ITEMS = ['ABOUT', 'NOTICE', 'CONTACT'];
 
 export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter(); 
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);  
   const [userName, setUserName] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
 
-  // 🌟 [추가됨] 화면이 처음 켜질 때(새로고침 시) 로그인 상태인지 쿠키를 검사합니다.
+  // --- 🌟 [신규] ESC 키로 모달 닫기 로직 ---
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setShowLoginModal(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLoginModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showLoginModal, handleKeyDown]);
+
+  // 🌟 [유지] 화면이 처음 켜질 때 로그인 상태 검사
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -21,7 +41,7 @@ export default function Header() {
         
         if (data.isLoggedIn) {
           setIsLoggedIn(true);
-          setUserName(data.user.name); // 이름 복구 완료!
+          setUserName(data.user.name);
         }
       } catch (err) {
         console.error("로그인 상태 확인 실패:", err);
@@ -80,12 +100,10 @@ export default function Header() {
               ))}
             </div>
             
-            <div className="h-3 w-px bg-gray-300 ml-18 mr-8"></div>
-            
+  
+            <div className="h-3 w-px bg-gray-300 ml-9.5 mr-8"></div>
             <div className="flex items-center gap-x-8">
-              <button className="hover:opacity-50 transition-opacity flex items-center justify-center">
-                <i className="fa-solid fa-magnifying-glass text-lg"></i>
-              </button>
+
               
               {isLoggedIn ? (
                 <div className="flex items-center gap-x-4 w-auto min-w-[64px] justify-center">
@@ -114,6 +132,9 @@ export default function Header() {
                   0
                 </span>
               </button>
+                <button className="hover:opacity-50 transition-opacity flex items-center justify-center">
+                <i className="fa-solid fa-magnifying-glass text-lg"></i>
+              </button>
             </div>
           </nav>
         </div>
@@ -124,7 +145,6 @@ export default function Header() {
           <h1 className="text-lg font-bold tracking-tighter uppercase">DOS</h1>
           
           <div className="flex items-center space-x-4 w-auto justify-end">
-
             {isLoggedIn ? (
               <>
                 <a href="#mypage" className="text-[10px] font-bold tracking-widest hover:opacity-50 uppercase text-black">
@@ -160,13 +180,20 @@ export default function Header() {
 
       {/* --- 로그인 팝업(모달) UI --- */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm px-4">
-          <div className="bg-white p-10 rounded-2xl w-full max-w-sm shadow-2xl relative">
+        <div 
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm px-4"
+          onClick={() => setShowLoginModal(false)} // 배경 클릭 시 닫기
+        >
+          <div 
+            className="bg-white p-10 rounded-2xl w-full max-w-sm shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫힘 방지
+          >
+            {/* 1. X 버튼 (디자인 포인트) */}
             <button 
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-black transition-colors"
+              className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors"
             >
-              <i className="fa-solid fa-xmark text-xl"></i>
+              <i className="fa-solid fa-xmark text-2xl"></i>
             </button>
             
             <h2 className="text-2xl font-bold tracking-tighter text-center mb-8 uppercase">Login</h2>
@@ -201,6 +228,20 @@ export default function Header() {
                 Sign In
               </button>
             </form>
+
+            {/* 2. 회원가입 버튼 추가 섹션 */}
+            <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+              <p className="text-xs text-gray-400 mb-4 tracking-widest uppercase">계정이 없으신가요?</p>
+              <button 
+                onClick={() => {
+                  setShowLoginModal(false); // 모달 닫고
+                  router.push('/signup');   // 회원가입 페이지로 이동 (import { useRouter } 필요)
+                }}
+                className="text-xs font-bold tracking-[0.15em] text-gray-800 hover:text-gray-500 transition-colors uppercase underline underline-offset-4"
+              >
+                Create an Account
+              </button>
+            </div>
           </div>
         </div>
       )}
