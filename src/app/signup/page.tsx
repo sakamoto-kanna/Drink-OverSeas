@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 
@@ -22,6 +22,53 @@ export default function SignupPage() {
     address: "",
     detailAddress: "",
   });
+
+  const [idStatus, setIdStatus] = useState({
+    state: "idle", // idle | checking | available | duplicate | invalid
+    message: "",
+  });
+
+  useEffect(() => {
+    const checkId = async () => {
+      const currentId = formData.loginId;
+
+      // 비어있으면 초기화
+      if (!currentId) {
+        setIdStatus({ state: "idle", message: "" });
+        return;
+      }
+
+      // 1차: 한글/특수문자 정규식 검사 (기존 로직 대체)
+      if (/[^a-zA-Z0-9]/.test(currentId)) {
+        setIdStatus({
+          state: "invalid",
+          message: "아이디는 영문과 숫자만 입력 가능합니다.",
+        });
+        return;
+      }
+
+      setIdStatus({ state: "checking", message: "확인 중..." });
+
+      // 2차: 백엔드 API로 중복 검사 요청
+      try {
+        const res = await fetch(`/api/auth/check-id?id=${currentId}`);
+        const data = await res.json();
+
+        if (data.available) {
+          setIdStatus({ state: "available", message: data.message }); // 초록색 메시지
+        } else {
+          setIdStatus({ state: "duplicate", message: data.message }); // 빨간색 메시지
+        }
+      } catch (error) {
+        setIdStatus({ state: "invalid", message: "서버 확인 실패" });
+      }
+    };
+
+    // 사용자가 타이핑을 멈추고 0.5초(500ms) 뒤에 검사를 실행합니다.
+    // (매 글자마다 DB를 찌르면 서버가 터질 수 있기 때문입니다!)
+    const timer = setTimeout(checkId, 500);
+    return () => clearTimeout(timer);
+  }, [formData.loginId]);
 
   const handleAddressSearch = () => {
     if (!window.daum || !window.daum.Postcode) {
@@ -58,16 +105,54 @@ export default function SignupPage() {
     e: React.ChangeEvent<HTMLInputElement>,
     fieldName: string,
   ) => {
-    setFormData((prev) => ({ ...prev, [fieldName]: e.target.value }));
+    let value = e.target.value;
+
+    if (fieldName === "loginId") {
+      // 한글 조합 중일 때는 에러(잔상) 방지를 위해 일단 통과시킵니다.
+      if ((e.nativeEvent as InputEvent).isComposing) {
+        setFormData((prev) => ({ ...prev, [fieldName]: value }));
+        return;
+      }
+
+      // 조합이 끝나면 영소문자, 영대문자, 숫자가 아닌(^ 기호) 모든 문자를 빈 문자열로 날려버립니다.
+      value = value.replace(/[^a-zA-Z0-9]/g, "");
+    }
+
+    // 1. 현재 입력하는 칸이 '전화번호(phone)'일 때만 특수 로직 발동
+    if (fieldName === "phone") {
+      // 🌟 한글 조합(IME) 중일 때는 포맷팅을 건너뛰고 입력값 그대로 저장합니다.
+      // (TypeScript 환경에서 에러가 나지 않도록 타입 단언을 사용합니다)
+      if ((e.nativeEvent as InputEvent).isComposing) {
+        setFormData((prev) => ({ ...prev, [fieldName]: value }));
+        return;
+      }
+
+      // 🌟 한글 조합이 끝났거나 숫자를 입력 중일 때: 숫자가 아닌 문자 제거
+      const onlyNums = value.replace(/[^0-9]/g, "");
+
+      // 🌟 길이에 맞춰 자동 하이픈 삽입
+      if (onlyNums.length <= 3) {
+        value = onlyNums;
+      } else if (onlyNums.length <= 7) {
+        value = `${onlyNums.slice(0, 3)}-${onlyNums.slice(3)}`;
+      } else if (onlyNums.length <= 11) {
+        value = `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(7)}`;
+      } else {
+        value = `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(7, 11)}`;
+      }
+    }
+
+    // 2. 전화번호 포맷팅이 완료된 값, 혹은 다른 일반 필드들의 값을 최종 업데이트합니다.
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
   };
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
 
     //폼 제출 직전에 아이디 유효성을 한 번 더 검사합니다. (경고를 무시하고 가입하는 것 방지)
-    if (/[^a-zA-Z0-9]/.test(formData.loginId)) {
-      alert("아이디는 영문과 숫자만 사용할 수 있습니다. 다시 확인해주세요.");
-      return; // 에러가 있으면 백엔드로 데이터를 보내지 않고 여기서 멈춥니다.
+    if (idStatus.state !== "available") {
+      alert("아이디 중복 확인 및 입력 규칙을 확인해주세요.");
+      return;
     }
     const invalidPasswordRegex =
       /[^a-zA-Z0-9!@#$%^&*()_+~`\-={}[\]:;"'<>,.?/|\\]/;
@@ -91,8 +176,7 @@ export default function SignupPage() {
     const data = await res.json();
 
     if (data.success) {
-      alert("가입을 환영합니다! 로그인 해주세요.");
-      router.push("/");
+      router.push("/verify-pending");
     } else {
       alert(data.message);
     }
@@ -113,7 +197,12 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {[
-              { label: "ID", name: "loginId", type: "text" },
+              {
+                label: "ID",
+                name: "loginId",
+                type: "text",
+                title: "영문, 숫자 조합의 아이디를 입력해주세요.",
+              },
               {
                 label: "Password",
                 name: "password",
@@ -121,10 +210,27 @@ export default function SignupPage() {
                 min: 8,
                 max: 20,
                 desc: "8~20자리",
+                title: "8~20자리의 안전한 비밀번호를 설정해주세요.",
               },
-              { label: "Name", name: "name", type: "text" },
-              { label: "Email", name: "email", type: "email" },
-              { label: "Phone", name: "phone", type: "tel" },
+              {
+                label: "Name",
+                name: "name",
+                type: "text",
+                title: "가입자 본인의 실명을 입력해주세요.",
+              },
+              {
+                label: "Email",
+                name: "email",
+                type: "email",
+                title:
+                  "인증 메일을 받을 수 있는 실제 이메일 주소를 입력해주세요.",
+              },
+              {
+                label: "Phone",
+                name: "phone",
+                type: "tel",
+                title: "숫자만 입력해주세요. (예: 01012345678)",
+              },
             ].map((field) => (
               <div key={field.name}>
                 <label className="mb-2 block text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">
@@ -138,20 +244,33 @@ export default function SignupPage() {
                 <input
                   type={field.type}
                   required
+                  title={field.title}
+                  placeholder={field.title}
                   minLength={field.min}
                   maxLength={field.max}
                   value={formData[field.name as keyof typeof formData]}
+                  inputMode={field.name === "phone" ? "numeric" : undefined} //폰 번호일 때만 모바일 숫자 키패드 강제 호출!
                   className="w-full border-b border-gray-200 py-2 text-sm transition-colors outline-none focus:border-black"
                   onChange={(e) => handleInputChange(e, field.name)}
                 />
 
                 {/* 아이디 필드 실시간 경고 메시지 */}
-                {field.name === "loginId" &&
-                  /[^a-zA-Z0-9]/.test(formData.loginId) && (
-                    <p className="mt-2 text-[10px] font-bold tracking-wide text-red-400">
-                      아이디는 영문과 숫자만 입력 가능합니다.
-                    </p>
-                  )}
+                {field.name === "loginId" && idStatus.message && (
+                  <div className="mt-2 text-left text-[10px] font-bold tracking-wide">
+                    {idStatus.state === "checking" && (
+                      <span className="text-gray-400">{idStatus.message}</span>
+                    )}
+                    {idStatus.state === "invalid" && (
+                      <span className="text-red-400">{idStatus.message}</span>
+                    )}
+                    {idStatus.state === "duplicate" && (
+                      <span className="text-red-400">{idStatus.message}</span>
+                    )}
+                    {idStatus.state === "available" && (
+                      <span className="text-green-500">{idStatus.message}</span>
+                    )}
+                  </div>
+                )}
 
                 {/* 비밀번호 필드 실시간 안내 메시지 */}
                 {field.name === "password" && formData.password.length > 0 && (
