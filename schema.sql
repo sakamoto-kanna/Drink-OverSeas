@@ -53,7 +53,7 @@ INSERT INTO USER_ROLES (LOGIN_ID, ROLE_NAME) VALUES ('admin', 'ROLE_ADMIN');
 
 INSERT INTO products (name, price, image) VALUES 
 ('Signature Coffee Beans', 18000, 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&q=80&w=600'),
-('Whole coffee beans', 18000, 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&q=80&w=600'),
+('Whole coffee beans', 18000, 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&q=80&w=600');
 
 INSERT INTO products (name, price, description, image) VALUES 
 ('아이스 아메리카노', 4500, '에티오피아 원두로 블렌딩한 산뜻하고 시원한 아메리카노', 'https://images.unsplash.com/photo-1551030173-122aabc4489c?auto=format&fit=crop&w=600&q=80');
