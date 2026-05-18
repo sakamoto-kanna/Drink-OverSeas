@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
+import Link from "next/link";
 
 declare global {
   interface Window {
@@ -120,17 +121,17 @@ export default function SignupPage() {
 
     // 1. 현재 입력하는 칸이 '전화번호(phone)'일 때만 특수 로직 발동
     if (fieldName === "phone") {
-      // 🌟 한글 조합(IME) 중일 때는 포맷팅을 건너뛰고 입력값 그대로 저장합니다.
+      // 한글 조합(IME) 중일 때는 포맷팅을 건너뛰고 입력값 그대로 저장합니다.
       // (TypeScript 환경에서 에러가 나지 않도록 타입 단언을 사용합니다)
       if ((e.nativeEvent as InputEvent).isComposing) {
         setFormData((prev) => ({ ...prev, [fieldName]: value }));
         return;
       }
 
-      // 🌟 한글 조합이 끝났거나 숫자를 입력 중일 때: 숫자가 아닌 문자 제거
+      // 한글 조합이 끝났거나 숫자를 입력 중일 때: 숫자가 아닌 문자 제거
       const onlyNums = value.replace(/[^0-9]/g, "");
 
-      // 🌟 길이에 맞춰 자동 하이픈 삽입
+      // 길이에 맞춰 자동 하이픈 삽입
       if (onlyNums.length <= 3) {
         value = onlyNums;
       } else if (onlyNums.length <= 7) {
@@ -189,7 +190,29 @@ export default function SignupPage() {
         strategy="afterInteractive"
       />
 
-      <div className="flex min-h-screen items-center justify-center bg-[#FDFCFB] px-4 py-20">
+      {/* 🌟 겉을 감싸는 최상위 div에 버튼 배치를 위한 relative 클래스를 추가했습니다 */}
+      <div className="relative flex min-h-screen items-center justify-center bg-[#FDFCFB] px-4 py-20">
+        {/* 🌟 메인으로 돌아가기 버튼 추가 */}
+        <Link
+          href="/"
+          className="absolute top-6 left-6 flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase transition-colors hover:text-black md:top-10 md:left-10"
+        >
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Back to Home
+        </Link>
+
         <div className="w-full max-w-md border border-gray-100 bg-white p-12 shadow-sm">
           <h1 className="mb-10 text-center text-3xl font-bold tracking-tighter uppercase">
             Create Account

@@ -5,7 +5,7 @@ export default function VerifySuccessPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FDFCFB] p-4 text-black">
       <div className="w-full max-w-md border border-gray-100 bg-white p-12 text-center shadow-sm">
-        {/* 🌟 성공을 알리는 초록색 체크 아이콘 */}
+        {/* 성공을 알리는 초록색 체크 아이콘 */}
         <svg
           className="mx-auto mb-6 h-14 w-14 text-green-500"
           fill="none"

@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { Resend } from "resend"; // 🌟 1. Resend 라이브러리 불러오기
+import { Resend } from "resend";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // 2. 비밀번호 해싱 (Salt 생성 및 암호화)
+    // 10은 salt rounds 값으로, 높을수록 안전하지만 느려집니다. (10~12가 표준)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     // 2. 인증 토큰 생성 (기존과 동일)
     const verifyToken = crypto.randomUUID();
 
@@ -33,16 +39,14 @@ export async function POST(request: Request) {
         `INSERT INTO USER_AUTH (LOGIN_ID, PASSWORD, NAME, EMAIL, PHONE, ADDRESS, IS_VERIFIED, VERIFY_TOKEN) 
        VALUES (?, ?, ?, ?, ?, ?, 0, ?)`,
       )
-      .bind(loginId, password, name, email, phone, address, verifyToken)
+      .bind(loginId, hashedPassword, name, email, phone, address, verifyToken)
       .run();
 
-    // 🌟 4. [변경됨] 로컬 테스트용 인증 링크
     // 나중에 실제 도메인을 사면 이 부분을 https://dos.com/api/auth/verify... 로 바꿔야 합니다.
     const siteUrl =
       (env.NEXT_PUBLIC_SITE_URL as string) || "http://localhost:3000";
     const verifyLink = `${siteUrl}/api/auth/verify?token=${verifyToken}`;
 
-    // 🌟 5. [추가됨] Resend를 이용한 실제 이메일 발송
     const { data, error } = await resend.emails.send({
       from: "DOS <onboarding@resend.dev>", // Resend에서 제공하는 테스트용 기본 발신자 주소
       to: [email],

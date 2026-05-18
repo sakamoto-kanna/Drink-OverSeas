@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS USER_ROLES;
 DROP TABLE IF EXISTS USER_AUTH;
 DROP TABLE IF EXISTS products;
 
--- 2. 사용자 테이블 생성 (🌟 이메일 인증 컬럼 추가)
+-- 2. 사용자 테이블 생성 ( 이메일 인증 컬럼 추가)
 CREATE TABLE USER_AUTH (
     LOGIN_ID TEXT PRIMARY KEY,
     PASSWORD TEXT NOT NULL,
@@ -11,8 +11,8 @@ CREATE TABLE USER_AUTH (
     EMAIL TEXT NOT NULL,
     PHONE TEXT,
     ADDRESS TEXT,
-    IS_VERIFIED INTEGER DEFAULT 0, -- 🌟 이메일 인증 여부 (0: 미인증, 1: 인증완료)
-    VERIFY_TOKEN TEXT,             -- 🌟 이메일 인증 링크에 쓰일 고유 난수 토큰
+    IS_VERIFIED INTEGER DEFAULT 0, --  이메일 인증 여부 (0: 미인증, 1: 인증완료)
+    VERIFY_TOKEN TEXT,             --  이메일 인증 링크에 쓰일 고유 난수 토큰
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -39,9 +39,9 @@ CREATE TABLE products (
 -- ==========================================
 
 -- 관리자(admin) 계정 생성 
--- 🌟 주의: 관리자는 이메일 인증을 거치지 않아도 되도록 IS_VERIFIED 값을 1로 강제 설정합니다.
+--  주의: 관리자는 이메일 인증을 거치지 않아도 되도록 IS_VERIFIED 값을 1로 강제 설정합니다.
 INSERT INTO USER_AUTH (LOGIN_ID, PASSWORD, NAME, EMAIL, PHONE, ADDRESS, IS_VERIFIED) 
-VALUES ('admin', 'admin123', '관리자', 'admin@dos.com', '010-0000-0000', 'Daejeon, South Korea', 1);
+VALUES ('admin', '$2b$10$cmaqpY1cDUrwhzBF/xnOYO3IaL1YvcghruetvrUOoGDbl.dt3xx3S', '관리자', 'admin@dos.com', '010-0000-0000', 'Daejeon, South Korea', 1);
 
 -- 관리자 권한 부여
 INSERT INTO USER_ROLES (LOGIN_ID, ROLE_NAME) VALUES ('admin', 'ROLE_USER');

@@ -1,25 +1,29 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
+import bcrypt from "bcryptjs";
 
 // JWT 암호화에 사용할 비밀키 (실무에서는 .env 파일에 보관해야 합니다)
 const SECRET_KEY = new TextEncoder().encode("dos-super-secret-key-2026");
 
 export async function POST(request: Request) {
   try {
-    // 1. 프론트엔드에서 보낸 아이디와 비밀번호 받기
     const { loginId, password } = await request.json();
-
-    // DB 연결
     const { env } = await getCloudflareContext();
     const db = env.DB;
 
-    // 2. USER_AUTH 테이블에서 아이디와 비밀번호가 일치하는 유저 찾기
+    // 2. 아이디로만 유저를 먼저 찾습니다.
     const user = await db
-      .prepare("SELECT * FROM USER_AUTH WHERE LOGIN_ID = ? AND PASSWORD = ?")
-      .bind(loginId, password)
-      .first<{ LOGIN_ID: string; NAME: string; IS_VERIFIED: number }>();
+      .prepare("SELECT * FROM USER_AUTH WHERE LOGIN_ID = ?")
+      .bind(loginId)
+      .first<{
+        LOGIN_ID: string;
+        NAME: string;
+        IS_VERIFIED: number;
+        PASSWORD: string;
+      }>();
 
+    // 3. 유저가 없는 경우 방어
     if (!user) {
       return Response.json(
         {
@@ -30,7 +34,20 @@ export async function POST(request: Request) {
       );
     }
 
-    //이메일 인증 여부 검사 (유저가 존재할 때만 실행)
+    //4. 입력받은 평문 password와 DB의 해시된 PASSWORD를 비교합니다.
+    const isMatch = await bcrypt.compare(password, user.PASSWORD);
+
+    if (!isMatch) {
+      return Response.json(
+        {
+          success: false,
+          message: "아이디 또는 비밀번호가 일치하지 않습니다.",
+        },
+        { status: 401 },
+      );
+    }
+
+    // 5. 이메일 인증 여부 검사 (이전에 만든 방어막)
     if (user.IS_VERIFIED === 0) {
       return Response.json(
         {
@@ -38,7 +55,7 @@ export async function POST(request: Request) {
           message:
             "이메일 인증이 완료되지 않았습니다. 메일함의 인증 링크를 클릭해주세요.",
         },
-        { status: 403 }, // 403 Forbidden 권한 없음
+        { status: 403 },
       );
     }
 
