@@ -1,21 +1,29 @@
 import React from "react";
 import Link from "next/link";
 
-// Next.js App Router에서는 URL의 쿼리 파라미터(?reason=...)를 props로 쉽게 받을 수 있습니다.
-export default function AuthErrorPage({
-  searchParams,
-}: {
-  searchParams: { reason?: string };
-}) {
+// 🌟 1. Next.js 최신 스펙에 맞춰 searchParams의 타입을 Promise 구조로 정의합니다.
+interface PageProps {
+  searchParams: Promise<{ reason?: string }>;
+}
+
+// 🌟 2. 컴포넌트가 비동기 데이터를 해제할 수 있도록 async 함수로 변경합니다.
+export default async function AuthErrorPage({ searchParams }: PageProps) {
+  // 🌟 3. [핵심] 비동기 객체인 searchParams를 await로 풀어냅니다.
+  const resolvedParams = await searchParams;
+
   // 에러 원인에 따라 보여줄 메시지를 다르게 설정할 수 있습니다.
   let errorMessage = "유효하지 않거나 이미 만료된 인증 링크입니다.";
 
-  if (searchParams.reason === "no_token") {
+  // 🌟 4. 해제된 resolvedParams를 사용하여 조건을 검사합니다.
+  if (resolvedParams.reason === "no_token") {
     errorMessage =
       "인증 토큰이 누락되었습니다. 메일의 링크를 다시 확인해주세요.";
-  } else if (searchParams.reason === "server_error") {
+  } else if (resolvedParams.reason === "server_error") {
     errorMessage =
       "인증 처리 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+  } else if (resolvedParams.reason === "Configuration") {
+    // 💡 Auth.js secret 설정이 정상적으로 주입되지 않았을 때 넘어오는 예약된 에러 코드입니다.
+    errorMessage = "서버 인증 환경설정(Secret) 오류가 발생했습니다.";
   }
 
   return (

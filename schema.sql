@@ -16,6 +16,32 @@ CREATE TABLE USER_AUTH (
     CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+--소셜 계정 연결 정보 (구글/네이버 등과 USER_AUTH를 잇는 고리)
+CREATE TABLE accounts (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL, -- 기존 USER_AUTH의 LOGIN_ID와 연결됩니다.
+  type TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  providerAccountId TEXT NOT NULL,
+  refresh_token TEXT,
+  access_token TEXT,
+  expires_at INTEGER,
+  token_type TEXT,
+  scope TEXT,
+  id_token TEXT,
+  session_state TEXT,
+  FOREIGN KEY (userId) REFERENCES USER_AUTH(LOGIN_ID) ON DELETE CASCADE
+);
+
+--세션 정보 (로그인 유지용)
+CREATE TABLE sessions (
+  id TEXT PRIMARY KEY,
+  sessionToken TEXT UNIQUE NOT NULL,
+  userId TEXT NOT NULL,
+  expires TIMESTAMP NOT NULL,
+  FOREIGN KEY (userId) REFERENCES USER_AUTH(LOGIN_ID) ON DELETE CASCADE
+);
+
 -- 3. 사용자 권한 테이블 생성 (다중 역할 부여 가능)
 CREATE TABLE USER_ROLES (
     LOGIN_ID TEXT NOT NULL,
