@@ -57,9 +57,9 @@ export default function ShoppingApp() {
 
       <main>
         {/* Hero Section */}
-        <section className="px-6 py-20 text-center md:py-32">
+        <section className="px-6 py-10 text-center md:py-32">
           <div className="mx-auto max-w-3xl">
-            <h2 className="font-yeongwol mb-10 text-3xl leading-snug font-light md:text-5xl md:leading-tight">
+            <h2 className="font-yeongwol mb-10 text-2xl leading-snug font-light md:text-5xl md:leading-tight">
               The World's Flavors, Ready to Drink.
               <br />
               Enjoy Your Selection At Home

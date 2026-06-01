@@ -1,30 +1,40 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/jwt";
 
-// 로그인할 때 썼던 비밀키와 똑같아야 합니다.
-const SECRET_KEY = new TextEncoder().encode("dos-super-secret-key-2026");
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    // 1. Cloudflare 환경변수 안전하게 가져오기
+    const { env } = await getCloudflareContext();
 
-    // 1. 쿠키에 토큰이 아예 없으면 (로그인 안 한 상태)
+    // 2. 브라우저 쿠키에서 token 꺼내기
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    // 토큰이 아예 없으면 미인증 상태 반환
     if (!token) {
       return Response.json({ isLoggedIn: false });
     }
 
-    // 2. 토큰이 있다면 위조되지 않았는지, 만료되지 않았는지 검사합니다.
-    const { payload } = await jwtVerify(token, SECRET_KEY);
+    // 3. 토큰 검증 (반드시 env.JWT_SECRET을 두 번째 인자로 넘겨주어야 에러가 나지 않습니다!)
+    const decoded = await verifyToken(token, env.JWT_SECRET as string);
 
-    // 3. 검증 통과! 유저 정보를 프론트엔드로 보내줍니다.
-    return Response.json({ 
-      isLoggedIn: true, 
-      user: { name: payload.name, roles: payload.roles, loginId: payload.loginId } 
+    // 검증 실패 또는 만료된 토큰인 경우
+    if (!decoded || !decoded.loginId) {
+      return Response.json({ isLoggedIn: false });
+    }
+
+    // 4. 검증 성공 시 유저 정보와 함께 로그인 상태(true) 반환
+    return Response.json({
+      isLoggedIn: true,
+      user: {
+        loginId: decoded.loginId,
+        name: decoded.name,
+      },
     });
-
   } catch (error) {
-    // 토큰 기간이 끝났거나(만료), 누군가 조작한 경우 얄짤없이 로그인 해제
-    return Response.json({ isLoggedIn: false });
+    console.error("Auth Me API Error:", error);
+    // 서버 내부 에러가 나더라도 프론트엔드가 뻗지 않도록 false를 반환
+    return Response.json({ isLoggedIn: false }, { status: 500 });
   }
 }
