@@ -1,5 +1,7 @@
 -- 1. 기존 테이블이 있다면 깔끔하게 삭제 (순서 중요: 의존성이 있는 것부터 삭제)
 DROP TABLE IF EXISTS USER_ROLES;
+DROP TABLE IF EXISTS accounts;
+DROP TABLE IF EXISTS sessions;  
 DROP TABLE IF EXISTS USER_AUTH;
 DROP TABLE IF EXISTS products;
 
