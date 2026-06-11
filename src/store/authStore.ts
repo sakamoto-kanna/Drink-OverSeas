@@ -21,7 +21,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       // 만약을 대비한 수동 동기화용으로 남겨둡니다.
       set({ isAuthLoading: true });
       const res = await fetch("/api/auth/me");
-      const data = await res.json();
+      const data = (await res.json()) as {
+        isLoggedIn: string;
+        user: {
+          name: string;
+        };
+      };
       if (data.isLoggedIn) {
         set({ isLoggedIn: true, userName: data.user.name });
       }

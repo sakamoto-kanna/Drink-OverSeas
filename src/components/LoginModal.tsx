@@ -43,10 +43,16 @@ export default function LoginModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ loginId, password }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        success: boolean;
+        user: {
+          name: string;
+        };
+        message?: string;
+      };
 
       if (data.success) {
-        alert(`${data.user.name}님 환영합니다! ☕`);
+        alert(`${data.user.name}님 환영합니다!`);
         onLoginSuccess(data.user.name); // 부모(Header)에게 성공했음을 알림
         onClose(); // 로그인 완료 후 모달 닫기
       } else {

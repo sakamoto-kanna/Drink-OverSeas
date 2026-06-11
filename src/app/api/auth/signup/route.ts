@@ -5,11 +5,18 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const { loginId, password, name, email, phone, address } =
-      await request.json();
+      (await request.json()) as {
+        loginId: string;
+        password: string;
+        name: string;
+        email: string;
+        phone: string;
+        address: string;
+      };
     const { env } = await getCloudflareContext();
     const db = env.DB;
 
-    // 🌟 2. Cloudflare 환경변수에서 API 키를 꺼내 Resend 초기화
+    // 2. Cloudflare 환경변수에서 API 키를 꺼내 Resend 초기화
     const resend = new Resend(env.RESEND_API_KEY as string);
 
     // 1. 중복 아이디 체크 (기존과 동일)

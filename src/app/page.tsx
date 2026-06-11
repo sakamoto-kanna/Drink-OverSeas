@@ -40,8 +40,13 @@ export default function ShoppingApp() {
     fetch("/api/products")
       .then((res) => res.json())
       .then((json) => {
-        if (json.success) {
-          setProducts(json.data);
+        const responseData = json as {
+          success: boolean;
+          data: any[];
+        };
+
+        if (responseData.success) {
+          setProducts(responseData.data);
         }
         setIsLoading(false);
       })

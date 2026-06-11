@@ -53,7 +53,10 @@ export default function SignupPage() {
       // 2차: 백엔드 API로 중복 검사 요청
       try {
         const res = await fetch(`/api/auth/check-id?id=${currentId}`);
-        const data = await res.json();
+        const data = (await res.json()) as {
+          available: boolean;
+          message: string;
+        };
 
         if (data.available) {
           setIdStatus({ state: "available", message: data.message }); // 초록색 메시지
@@ -174,7 +177,10 @@ export default function SignupPage() {
       body: JSON.stringify(submissionData),
     });
 
-    const data = await res.json();
+    const data = (await res.json()) as {
+      success: boolean;
+      message?: string;
+    };
 
     if (data.success) {
       router.push("/verify-pending");

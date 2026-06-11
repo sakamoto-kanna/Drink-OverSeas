@@ -5,7 +5,10 @@ import { signToken } from "@/lib/jwt";
 
 export async function POST(request: Request) {
   try {
-    const { loginId, password } = await request.json();
+    const { loginId, password } = (await request.json()) as {
+      loginId: string;
+      password: string;
+    };
     const { env } = await getCloudflareContext();
     const db = env.DB;
 

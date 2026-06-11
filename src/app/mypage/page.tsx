@@ -38,7 +38,17 @@ export default function MyPage() {
     const fetchUserData = async () => {
       try {
         const res = await fetch("/api/user/profile");
-        const data = await res.json();
+        const data = (await res.json()) as {
+          success: boolean;
+          user: {
+            LOGIN_ID: string;
+            NAME: string;
+            EMAIL: string;
+            PHONE: string;
+            ADDRESS: string;
+          };
+          socials: string[]; // 배열의 내장 함수 includes를 쓰기 위해 문자열 배열로 타입 지정
+        };
 
         if (data.success) {
           setFormData({
@@ -101,7 +111,10 @@ export default function MyPage() {
       body: JSON.stringify(formData),
     });
 
-    const data = await res.json();
+    const data = (await res.json()) as {
+      success: boolean;
+      message?: string;
+    };
     if (data.success) {
       alert("개인정보가 성공적으로 수정되었습니다.");
       setIsEditing(false);
@@ -117,7 +130,9 @@ export default function MyPage() {
 
     if (confirmDelete) {
       const res = await fetch("/api/user/profile", { method: "DELETE" });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        success: boolean;
+      };
       if (data.success) {
         alert("회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
         router.push("/");
