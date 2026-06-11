@@ -8,6 +8,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { verifyToken } from "@/lib/jwt";
 import AuthInitializer from "@/components/AuthInitializer";
 
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
