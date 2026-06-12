@@ -60,5 +60,11 @@
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
    */
-  // "vars": {  "MY_VARIABLE": "production_value" }
+  "vars": {
+    "NEXTAUTH_URL": "https://drink-overseas.stupidcat9136.workers.dev",
+    "GOOGLE_CLIENT_ID": "107935368086-tl32rmlm2ik2pimq5fst36g14viqu20c.apps.googleusercontent.com",
+    "KAKAO_CLIENT_ID": "5e9a019906bc064b4ffa59afcf6b4f29",
+    "NAVER_CLIENT_ID": "A3h5Q5z_sC3IMV89mN10",
+    "AUTH_TRUST_HOST": true,
+  },
 }
