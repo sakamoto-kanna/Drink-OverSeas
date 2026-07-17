@@ -62,17 +62,16 @@ export default function LoginModal({
       alert("로그인 중 오류가 발생했습니다.");
     }
   };
-
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={onClose} // 배경 클릭 시 닫기
     >
       <div
-        className="relative w-full max-w-sm rounded-2xl bg-white p-10 shadow-2xl"
+        className="relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-10 shadow-2xl [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-track]:my-6 [&::-webkit-scrollbar-track]:bg-transparent"
         onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫힘 방지
       >
-        {/* X 버튼 */}
+        {/* X 버튼: 다시 원래 있던 자리로 돌아와 자연스럽게 이어집니다 (잘림 현상 완벽 해결) */}
         <button
           onClick={onClose}
           className="absolute top-6 right-6 text-gray-400 transition-colors hover:text-black"
