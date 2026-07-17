@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useCartStore } from "@/store/useCartStore";
 
 // 추후 전역 상태로 분리할 장바구니 상품 아이템 타입 정의
 interface CartItem {
@@ -17,47 +18,7 @@ interface CartItem {
 export default function CartPage() {
   const router = useRouter();
 
-  // 테스트 및 UI 확인을 위한 임시 장바구니 더미 데이터 상태
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Signature Coffee Beans",
-      price: 18000,
-      image:
-        "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&q=80&w=600",
-      quantity: 1,
-      description: "250g / 홀빈(분쇄안함)",
-    },
-    {
-      id: 2,
-      name: "Whole coffee beans",
-      price: 18000,
-      image:
-        "https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&q=80&w=600",
-      quantity: 2,
-      description: "250g / 핸드드립용",
-    },
-  ]);
-
-  // 수량 변경 핸들러
-  const handleQuantityChange = (id: number, delta: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === id) {
-          const newQuantity = item.quantity + delta;
-          return { ...item, quantity: newQuantity < 1 ? 1 : newQuantity };
-        }
-        return item;
-      }),
-    );
-  };
-
-  // 상품 삭제 핸들러
-  const handleRemoveItem = (id: number) => {
-    if (window.confirm("장바구니에서 해당 상품을 삭제하시겠습니까?")) {
-      setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    }
-  };
+  const { cartItems, updateQuantity, removeFromCart } = useCartStore();
 
   // 금액 계산 로직
   const subTotal = cartItems.reduce(
@@ -68,8 +29,15 @@ export default function CartPage() {
   const totalAmount = subTotal + shippingFee;
 
   return (
-    <div className="flex min-h-screen justify-center bg-[#FDFCFB] px-4 py-20 text-black">
+    <div className="flex min-h-screen justify-center bg-[#FDFCFB] px-4 py-4 text-black">
       <div className="w-full max-w-5xl">
+        <Link
+          href="/"
+          className="group mb-8 flex w-fit items-center text-xs font-bold tracking-widest text-gray-400 uppercase transition-colors hover:text-black"
+        >
+          <i className="fa-solid fa-arrow-left mr-2 transition-transform group-hover:-translate-x-1"></i>
+          Back to Home
+        </Link>
         {/* 상단 타이틀 */}
         <h1 className="mb-12 text-3xl font-bold tracking-tighter uppercase">
           Shopping Bag
@@ -121,7 +89,7 @@ export default function CartPage() {
                         </span>
                       )}
                       <button
-                        onClick={() => handleRemoveItem(item.id)}
+                        onClick={() => removeFromCart(item.id)}
                         className="mt-2 w-fit text-left text-[10px] font-bold tracking-wider text-red-400 uppercase hover:text-red-600"
                       >
                         Remove
@@ -136,7 +104,7 @@ export default function CartPage() {
                     </span>
                     <div className="flex items-center border border-gray-200 bg-white">
                       <button
-                        onClick={() => handleQuantityChange(item.id, -1)}
+                        onClick={() => updateQuantity(item.id, -1)}
                         className="px-3 py-1 text-sm text-gray-500 hover:bg-gray-50"
                       >
                         -
@@ -145,7 +113,7 @@ export default function CartPage() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => handleQuantityChange(item.id, 1)}
+                        onClick={() => updateQuantity(item.id, 1)}
                         className="px-3 py-1 text-sm text-gray-500 hover:bg-gray-50"
                       >
                         +
@@ -164,17 +132,6 @@ export default function CartPage() {
                   </div>
                 </div>
               ))}
-
-              {/* 쇼핑 계속하기 버튼 링크 */}
-              <div className="pt-4">
-                <button
-                  onClick={() => router.push("/")}
-                  className="group flex items-center text-xs font-bold tracking-widest text-gray-400 uppercase transition-colors hover:text-black"
-                >
-                  <i className="fa-solid fa-arrow-left mr-2 transition-transform group-hover:-translate-x-1"></i>
-                  Continue Shopping
-                </button>
-              </div>
             </div>
 
             {/* 오른쪽: 최종 결제 정보 요약 주문 영역 */}

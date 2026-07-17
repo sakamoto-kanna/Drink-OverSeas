@@ -5,6 +5,7 @@ import Link from "next/link";
 import LoginModal from "./LoginModal";
 import { signOut } from "next-auth/react";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/useCartStore";
 
 const NAV_ITEMS = ["ABOUT", "NOTICE", "CONTACT"];
 
@@ -13,6 +14,12 @@ export default function Header() {
   // 추가: 모바일 메뉴 열림/닫힘 상태 관리
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const { cartItems } = useCartStore();
+
+  const totalQuantity = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0, // total의 시작값을 0으로 설정
+  );
   const {
     isLoggedIn,
     userName,
@@ -96,9 +103,11 @@ export default function Header() {
                   href="/cart"
                   className="fa-solid fa-bag-shopping text-lg"
                 ></Link>
-                <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#1A1A1A] font-sans text-[9px] font-bold tracking-normal text-white">
-                  0
-                </span>
+                {totalQuantity > 0 && (
+                  <span className="absolute -top-2 -right-3 flex h-4 w-4 items-center justify-center rounded-full bg-black pl-[2px] text-[10px] leading-none text-white">
+                    {totalQuantity}
+                  </span>
+                )}
               </button>
               <button className="flex items-center justify-center transition-opacity hover:opacity-50">
                 <i className="fa-solid fa-magnifying-glass text-lg"></i>
@@ -149,9 +158,11 @@ export default function Header() {
             )}
             <button className="relative flex items-center text-lg hover:opacity-50">
               <Link href="/cart" className="fa-solid fa-bag-shopping"></Link>
-              <span className="absolute -top-1.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#1A1A1A] font-sans text-[9px] font-bold tracking-normal text-white">
-                0
-              </span>
+              {totalQuantity > 0 && (
+                <span className="absolute -top-2 -right-3 flex h-4 w-4 items-center justify-center rounded-full bg-black pl-[2px] text-[10px] leading-none text-white">
+                  {totalQuantity}
+                </span>
+              )}
             </button>
             <button className="ml-1 flex items-center text-lg hover:opacity-50">
               <i className="fa-solid fa-magnifying-glass"></i>
