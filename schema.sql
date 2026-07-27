@@ -62,6 +62,17 @@ CREATE TABLE products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 장바구니 테이블 생성
+CREATE TABLE IF NOT EXISTS cart (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,      -- 장바구니 고유 번호 (자동 증가)
+    login_id TEXT NOT NULL,                    -- 회원 아이디 (USER_AUTH 테이블의 LOGIN_ID)
+    product_id INTEGER NOT NULL,               -- 상품 고유 번호
+    quantity INTEGER NOT NULL DEFAULT 1,       -- 담은 수량
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- 장바구니에 담은 시간
+    
+    UNIQUE(login_id, product_id)
+);
+
 -- ==========================================
 -- 초기 더미 데이터 셋업
 -- ==========================================

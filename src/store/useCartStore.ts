@@ -14,10 +14,12 @@ export interface CartItem {
 // 2. 스토어 상태와 기능(액션) 정의
 interface CartStore {
   cartItems: CartItem[];
+
   addToCart: (item: CartItem) => void;
   updateQuantity: (id: number, delta: number) => void;
   removeFromCart: (id: number) => void;
   clearCart: () => void;
+  setCart: (items: CartItem[]) => void;
 }
 
 // 3. Zustand 스토어 생성 (+ persist 적용)
@@ -25,6 +27,8 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
       cartItems: [],
+
+      setCart: (items) => set({ cartItems: items }),
 
       // 상품 추가 액션
       addToCart: (newItem) =>

@@ -51,24 +51,55 @@ export default function ShoppingApp() {
   const { addToCart } = useCartStore();
 
   // 장바구니 담기 버튼을 눌렀을 때 실행될 함수
-  const handleAddToCart = (drink: any) => {
-    // 1. 스토어의 addToCart 함수에 상품 정보와 기본 수량(1)을 묶어서 보냅니다.
+  const handleAddToCart = async (drink: any) => {
+    // 1. 비회원/회원 상관없이 무조건 프론트엔드 스토어(Zustand + Local Storage)에 먼저 담습니다!
     addToCart({
       id: drink.id,
       name: drink.name,
       price: drink.price,
       image: drink.image,
       description: drink.description,
-      quantity: 1, // 처음 담을 때는 무조건 1개!
+      quantity: 1,
     });
 
-    // 2. 사용자에게 알림을 띄웁니다.
-    if (
-      window.confirm(
-        `${drink.name}이(가) 장바구니에 담겼습니다!\n장바구니로 이동하시겠습니까?`,
-      )
-    ) {
-      router.push("/cart");
+    try {
+      // 2. 백엔드(DB) 동기화를 시도합니다.
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: drink.id,
+          quantity: 1,
+        }),
+      });
+
+      // 3. 비회원인 경우 (서버에서 401을 내려줬을 때)
+      if (response.status === 401) {
+        const goLogin = window.confirm(
+          `${drink.name}이(가) 임시 장바구니에 담겼습니다!\n` +
+            "로그인하시면 다른 기기에서도 장바구니가 유지됩니다.\n로그인 하시겠습니까?",
+        );
+
+        if (goLogin) {
+          router.push("/login"); // 프로젝트의 로그인 경로에 맞게 확인해주세요
+        }
+        return; // 여기서 함수 종료
+      }
+
+      // 🚀 4. 회원인 경우 (DB 저장 성공)
+      if (response.ok) {
+        if (
+          window.confirm(
+            `${drink.name}이(가) 장바구니에 담겼습니다!\n장바구니로 이동하시겠습니까?`,
+          )
+        ) {
+          router.push("/cart");
+        }
+      } else {
+        console.error("DB 연동에 실패했지만 브라우저에는 담겼습니다.");
+      }
+    } catch (error) {
+      console.error("장바구니 API 에러:", error);
     }
   };
   useEffect(() => {
