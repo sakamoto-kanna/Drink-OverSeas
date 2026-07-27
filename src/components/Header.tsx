@@ -14,7 +14,7 @@ export default function Header() {
   // 추가: 모바일 메뉴 열림/닫힘 상태 관리
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { cartItems } = useCartStore();
+  const { cartItems, clearCart } = useCartStore();
 
   const totalQuantity = cartItems.reduce(
     (total, item) => total + item.quantity,
@@ -34,6 +34,14 @@ export default function Header() {
   }, [checkLogin]);
 
   const handleLogout = async () => {
+    // ==========================================
+    // [추후 DB 연동 시 추가할 부분]
+    // 로그아웃하기 직전에 현재 브라우저의 cartItems를 통째로 백엔드(DB)로 쏴서 저장해둡니다.
+    // await fetch('/api/cart/sync', { method: 'POST', body: JSON.stringify(cartItems) });
+    // ==========================================
+
+    clearCart();
+
     setLogout();
     await fetch("/api/auth/logout", { method: "POST" });
     alert("로그아웃 되었습니다.");
