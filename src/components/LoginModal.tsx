@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useCartStore } from "@/store/useCartStore";
 
 // Header와 소통하기 위한 창구(Props) 정의
 interface LoginModalProps {
@@ -54,6 +55,19 @@ export default function LoginModal({
       if (data.success) {
         alert(`${data.user.name}님 환영합니다!`);
         onLoginSuccess(data.user.name); // 부모(Header)에게 성공했음을 알림
+        const { cartItems } = useCartStore.getState();
+        if (cartItems.length > 0) {
+          const syncData = cartItems.map((item) => ({
+            product_id: item.id,
+            quantity: item.quantity,
+          }));
+
+          await fetch("/api/cart/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cart: syncData }),
+          });
+        }
         onClose(); // 로그인 완료 후 모달 닫기
       } else {
         alert(data.message);

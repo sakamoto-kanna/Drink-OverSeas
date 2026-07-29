@@ -5,6 +5,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import { useCartStore } from "@/store/useCartStore";
+import LoginModal from "../components/LoginModal";
+import { useAuthStore } from "@/store/authStore";
 
 // --- Types ---
 interface Product {
@@ -45,6 +47,8 @@ const ProductCard: React.FC<{
   </div>
 );
 export default function ShoppingApp() {
+  const { setLogin } = useAuthStore();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -81,7 +85,7 @@ export default function ShoppingApp() {
         );
 
         if (goLogin) {
-          router.push("/login"); // 프로젝트의 로그인 경로에 맞게 확인해주세요
+          setShowLoginModal(true);
         }
         return; // 여기서 함수 종료
       }
@@ -123,51 +127,62 @@ export default function ShoppingApp() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] font-sans text-[#1A1A1A] selection:bg-gray-200">
-      <Header />
+    <>
+      <div className="min-h-screen bg-[#FDFCFB] font-sans text-[#1A1A1A] selection:bg-gray-200">
+        <Header />
 
-      <main>
-        {/* Hero Section */}
-        <section className="px-6 py-10 text-center md:py-32">
-          <div className="mx-auto max-w-3xl">
-            <h2 className="font-yeongwol mb-10 text-2xl leading-snug font-light md:text-5xl md:leading-tight">
-              The World's Flavors, Ready to Drink.
-              <br />
-              Enjoy Your Selection At Home
-            </h2>
-          </div>
-        </section>
-
-        {/* Product Grid */}
-        <section className="mx-auto max-w-7xl px-6 pb-24">
-          {isLoading ? (
-            <div className="font-yeongwol flex items-center justify-center py-20 text-lg text-gray-400">
-              상품을 불러오는 중입니다...
+        <main>
+          {/* Hero Section */}
+          <section className="px-6 py-10 text-center md:py-32">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="font-yeongwol mb-10 text-2xl leading-snug font-light md:text-5xl md:leading-tight">
+                The World's Flavors, Ready to Drink.
+                <br />
+                Enjoy Your Selection At Home
+              </h2>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
+          </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 px-6 py-12">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between text-[10px] tracking-widest text-gray-400 uppercase md:flex-row">
-          <p>© 2026 Drink OverSeas. All rights reserved.</p>
-          <div className="mt-4 flex space-x-6 md:mt-0">
-            <a href="#">Instagram</a>
-            <a href="#">Privacy Policy</a>
+          {/* Product Grid */}
+          <section className="mx-auto max-w-7xl px-6 pb-24">
+            {isLoading ? (
+              <div className="font-yeongwol flex items-center justify-center py-20 text-lg text-gray-400">
+                상품을 불러오는 중입니다...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-gray-100 px-6 py-12">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between text-[10px] tracking-widest text-gray-400 uppercase md:flex-row">
+            <p>© 2026 Drink OverSeas. All rights reserved.</p>
+            <div className="mt-4 flex space-x-6 md:mt-0">
+              <a href="#">Instagram</a>
+              <a href="#">Privacy Policy</a>
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+
+      {showLoginModal && (
+        <LoginModal
+          onClose={() => setShowLoginModal(false)}
+          onLoginSuccess={(name) => {
+            setLogin(name);
+          }}
+        />
+      )}
+    </>
   );
 }

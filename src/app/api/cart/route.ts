@@ -126,3 +126,129 @@ export async function GET(request: Request) {
     );
   }
 }
+export async function DELETE(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    // 🚀 비회원(토큰 없음)인 경우, DB에서 지울 게 없으니 그냥 성공으로 치고 넘깁니다.
+    if (!token) {
+      return NextResponse.json({
+        success: true,
+        message: "로컬 장바구니에서 삭제",
+      });
+    }
+
+    const payload = await verifyToken(token, process.env.JWT_SECRET);
+    if (!payload) {
+      return NextResponse.json(
+        { success: false, message: "유효하지 않은 토큰입니다." },
+        { status: 401 },
+      );
+    }
+
+    const loginId = (payload as any).loginId;
+
+    // 🚀 URL에서 지우려는 상품의 번호(product_id)를 꺼내옵니다.
+    // 예: /api/cart?product_id=123
+    const { searchParams } = new URL(request.url);
+    const productId = searchParams.get("product_id");
+
+    if (!productId) {
+      return NextResponse.json(
+        { success: false, message: "삭제할 상품 ID가 없습니다." },
+        { status: 400 },
+      );
+    }
+
+    // DB 연결 및 삭제 쿼리 실행
+    const { env } = await getCloudflareContext();
+    const db = env.DB as any;
+
+    await db
+      .prepare(
+        `
+      DELETE FROM cart
+      WHERE login_id = ? AND product_id = ?
+    `,
+      )
+      .bind(loginId, productId)
+      .run();
+
+    return NextResponse.json({
+      success: true,
+      message: "장바구니에서 삭제되었습니다.",
+    });
+  } catch (error) {
+    console.error("장바구니 삭제 API 에러:", error);
+    return NextResponse.json(
+      { success: false, message: "삭제 중 에러가 발생했습니다." },
+      { status: 500 },
+    );
+  }
+}
+// src/app/api/cart/route.ts (파일 맨 아래에 추가)
+
+export async function PUT(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    // 비회원은 DB에 저장할 필요가 없으니 통과!
+    if (!token) {
+      return NextResponse.json({
+        success: true,
+        message: "로컬 수량 업데이트",
+      });
+    }
+
+    const payload = await verifyToken(token, process.env.JWT_SECRET);
+    if (!payload) {
+      return NextResponse.json(
+        { success: false, message: "유효하지 않은 토큰입니다." },
+        { status: 401 },
+      );
+    }
+
+    const loginId = (payload as any).loginId;
+
+    // 프론트엔드에서 보낸 '상품 번호'와 '바뀐 최종 수량'을 받습니다.
+    const { product_id, quantity } = (await request.json()) as {
+      product_id: number;
+      quantity: number;
+    };
+
+    if (!product_id || quantity < 1) {
+      return NextResponse.json(
+        { success: false, message: "잘못된 요청입니다." },
+        { status: 400 },
+      );
+    }
+
+    const { env } = await getCloudflareContext();
+    const db = env.DB as any;
+
+    // 🚀 해당 유저의 특정 상품 수량을 덮어씌웁니다 (UPDATE 구문)
+    await db
+      .prepare(
+        `
+      UPDATE cart 
+      SET quantity = ? 
+      WHERE login_id = ? AND product_id = ?
+    `,
+      )
+      .bind(quantity, loginId, product_id)
+      .run();
+
+    return NextResponse.json({
+      success: true,
+      message: "수량이 변경되었습니다.",
+    });
+  } catch (error) {
+    console.error("수량 업데이트 API 에러:", error);
+    return NextResponse.json(
+      { success: false, message: "수량 업데이트 중 에러가 발생했습니다." },
+      { status: 500 },
+    );
+  }
+}
