@@ -178,8 +178,8 @@ export default function ShoppingApp() {
       {showLoginModal && (
         <LoginModal
           onClose={() => setShowLoginModal(false)}
-          onLoginSuccess={(name) => {
-            setLogin(name);
+          onLoginSuccess={(name, roles) => {
+            setLogin(name, roles);
           }}
         />
       )}
