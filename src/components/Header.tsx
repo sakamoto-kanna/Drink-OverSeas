@@ -7,7 +7,6 @@ import { signOut } from "next-auth/react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useRouter } from "next/navigation";
-const [isMounted, setIsMounted] = useState(false);
 
 const NAV_ITEMS = ["ABOUT", "NOTICE", "CONTACT"];
 
@@ -19,6 +18,8 @@ export default function Header() {
   const { cartItems, clearCart, setCartItems } = useCartStore();
 
   const router = useRouter();
+
+  const [isMounted, setIsMounted] = useState(false);
 
   const totalQuantity = cartItems.reduce(
     (total, item) => total + item.quantity,
