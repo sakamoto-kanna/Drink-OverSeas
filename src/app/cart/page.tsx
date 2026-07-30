@@ -156,7 +156,7 @@ export default function CartPage() {
 
                 {cartItems.map((item) => (
                   <div
-                    key={item.id}
+                    key={`cart-item-${item.id}`}
                     className="relative flex flex-col items-center gap-4 border border-gray-100 bg-white p-6 shadow-sm md:grid md:grid-cols-12"
                   >
                     {/* 상품 정보 (이미지, 이름, 설명) */}
