@@ -1,4 +1,3 @@
-// src/app/api/cart/sync/route.ts
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
@@ -56,7 +55,7 @@ export async function POST(request: Request) {
         INSERT INTO cart (login_id, product_id, quantity)
         VALUES (?, ?, ?)
         ON CONFLICT(login_id, product_id) DO UPDATE SET 
-        quantity = cart.quantity + excluded.quantity
+        quantity = excluded.quantity
       `,
           )
           .bind(loginId, item.product_id, item.quantity);

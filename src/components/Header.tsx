@@ -6,6 +6,7 @@ import LoginModal from "./LoginModal";
 import { signOut } from "next-auth/react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/useCartStore";
+import { useRouter } from "next/navigation";
 
 const NAV_ITEMS = ["ABOUT", "NOTICE", "CONTACT"];
 
@@ -15,6 +16,8 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { cartItems, clearCart } = useCartStore();
+
+  const router = useRouter();
 
   const totalQuantity = cartItems.reduce(
     (total, item) => total + item.quantity,
@@ -31,15 +34,25 @@ export default function Header() {
 
   useEffect(() => {
     checkLogin();
-  }, [checkLogin]);
+  }, []);
 
   const handleLogout = async () => {
-    // ==========================================
-    // [추후 DB 연동 시 추가할 부분]
-    // 로그아웃하기 직전에 현재 브라우저의 cartItems를 통째로 백엔드(DB)로 쏴서 저장해둡니다.
-    // await fetch('/api/cart/sync', { method: 'POST', body: JSON.stringify(cartItems) });
-    // ==========================================
+    try {
+      // 클라이언트 스토어를 비우기 전, 현재 장바구니 상태를 DB에 동기화
+      const syncData = cartItems.map((item) => ({
+        product_id: item.id,
+        quantity: item.quantity,
+      }));
 
+      await fetch("/api/cart/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart: syncData }),
+      });
+    } catch (error) {
+      console.error("로그아웃 중 장바구니 동기화 실패:", error);
+      // 동기화 실패 시에도 로그아웃 절차는 계속 진행
+    }
     clearCart();
 
     setLogout();
@@ -68,13 +81,13 @@ export default function Header() {
           <nav className="flex items-center text-sm font-medium tracking-widest text-gray-800">
             <div className="flex items-center gap-x-10">
               {NAV_ITEMS.map((item) => (
-                <Link
+                <button
                   key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="transition-opacity hover:opacity-50"
+                  onClick={() => router.push(`${item.toLowerCase()}`)}
+                  className="text-left transition-opacity hover:opacity-50"
                 >
                   {item}
-                </Link>
+                </button>
               ))}
             </div>
 
@@ -200,8 +213,8 @@ export default function Header() {
       {showLoginModal && (
         <LoginModal
           onClose={() => setShowLoginModal(false)}
-          onLoginSuccess={(name) => {
-            setLogin(name);
+          onLoginSuccess={(name, roles) => {
+            setLogin(name, roles);
           }}
         />
       )}

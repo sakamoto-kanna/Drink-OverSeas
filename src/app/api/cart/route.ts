@@ -131,7 +131,7 @@ export async function DELETE(request: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
-    // 🚀 비회원(토큰 없음)인 경우, DB에서 지울 게 없으니 그냥 성공으로 치고 넘깁니다.
+    //비회원(토큰 없음)인 경우, DB에서 지울 게 없으니 그냥 성공으로 치고 넘깁니다.
     if (!token) {
       return NextResponse.json({
         success: true,

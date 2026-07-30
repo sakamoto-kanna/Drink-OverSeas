@@ -30,6 +30,7 @@ export async function GET(request: Request) {
       user: {
         loginId: decoded.loginId,
         name: decoded.name,
+        roles: (decoded as any).roles || [],
       },
     });
   } catch (error) {

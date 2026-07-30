@@ -176,7 +176,7 @@ export default function CartPage() {
                           </span>
                         )}
 
-                        {/* 🚀 삭제 로직이 연결된 Remove 버튼 */}
+                        {/* 삭제 로직이 연결된 Remove 버튼 */}
                         <button
                           onClick={async () => {
                             if (

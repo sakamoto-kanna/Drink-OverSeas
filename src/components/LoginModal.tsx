@@ -8,7 +8,7 @@ import { useCartStore } from "@/store/useCartStore";
 // Header와 소통하기 위한 창구(Props) 정의
 interface LoginModalProps {
   onClose: () => void; // 모달 닫기 함수
-  onLoginSuccess: (userName: string) => void; // 로그인 성공 시 헤더에 이름 전달
+  onLoginSuccess: (userName: string, roles: string[]) => void; // 로그인 성공 시 헤더에 이름 전달
 }
 
 export default function LoginModal({
@@ -36,7 +36,7 @@ export default function LoginModal({
   }, [handleKeyDown]);
 
   // --- 로그인 제출 로직 ---
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     try {
       const res = await fetch("/api/auth/login", {
@@ -48,13 +48,14 @@ export default function LoginModal({
         success: boolean;
         user: {
           name: string;
+          roles: string[];
         };
         message?: string;
       };
 
       if (data.success) {
         alert(`${data.user.name}님 환영합니다!`);
-        onLoginSuccess(data.user.name); // 부모(Header)에게 성공했음을 알림
+        onLoginSuccess(data.user.name, data.user.roles); // 부모(Header)에게 성공했음을 알림
         const { cartItems } = useCartStore.getState();
         if (cartItems.length > 0) {
           const syncData = cartItems.map((item) => ({
