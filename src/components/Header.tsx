@@ -43,7 +43,7 @@ export default function Header() {
       const fetchMyCart = async () => {
         try {
           const res = await fetch("/api/cart");
-          const data = (await res.json()) as {
+          const resData = (await res.json()) as {
             success: boolean;
             data?: {
               id: number;
@@ -54,9 +54,8 @@ export default function Header() {
             }[];
             message?: string;
           };
-          if (data.success && data.data) {
-            setCartItems(data.data);
-            console.log(cartItems);
+          if (resData.success && resData.data) {
+            setCartItems(resData.data);
           }
         } catch (error) {
           console.error("장바구니 갱신 에러:", error);
