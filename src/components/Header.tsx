@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useRouter } from "next/navigation";
+const [isMounted, setIsMounted] = useState(false);
 
 const NAV_ITEMS = ["ABOUT", "NOTICE", "CONTACT"];
 
@@ -15,7 +16,7 @@ export default function Header() {
   // 추가: 모바일 메뉴 열림/닫힘 상태 관리
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { cartItems, clearCart } = useCartStore();
+  const { cartItems, clearCart, setCartItems } = useCartStore();
 
   const router = useRouter();
 
@@ -33,8 +34,38 @@ export default function Header() {
   } = useAuthStore();
 
   useEffect(() => {
+    setIsMounted(true);
     checkLogin();
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const fetchMyCart = async () => {
+        try {
+          const res = await fetch("/api/cart");
+          const data = (await res.json()) as {
+            success: boolean;
+            cart?: {
+              id: number;
+              name: string;
+              price: number;
+              quantity: number;
+              image: string;
+            }[];
+            message?: string;
+          };
+
+          if (data.success && data.cart) {
+            setCartItems(data.cart);
+          }
+        } catch (error) {
+          console.error("장바구니 갱신 에러:", error);
+        }
+      };
+
+      fetchMyCart();
+    }
+  }, [isLoggedIn, setCartItems]);
 
   const handleLogout = async () => {
     try {
@@ -124,7 +155,7 @@ export default function Header() {
                   href="/cart"
                   className="fa-solid fa-bag-shopping text-lg"
                 ></Link>
-                {totalQuantity > 0 && (
+                {isMounted && totalQuantity > 0 && (
                   <span className="absolute -top-2 -right-3 flex h-4 w-4 items-center justify-center rounded-full bg-black pl-[2px] text-[10px] leading-none text-white">
                     {totalQuantity}
                   </span>
@@ -179,7 +210,7 @@ export default function Header() {
             )}
             <button className="relative flex items-center text-lg hover:opacity-50">
               <Link href="/cart" className="fa-solid fa-bag-shopping"></Link>
-              {totalQuantity > 0 && (
+              {isMounted && totalQuantity > 0 && (
                 <span className="absolute -top-2 -right-3 flex h-4 w-4 items-center justify-center rounded-full bg-black pl-[2px] text-[10px] leading-none text-white">
                   {totalQuantity}
                 </span>
