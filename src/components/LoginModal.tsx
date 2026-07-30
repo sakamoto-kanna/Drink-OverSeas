@@ -55,8 +55,9 @@ export default function LoginModal({
 
       if (data.success) {
         alert(`${data.user.name}님 환영합니다!`);
-        onLoginSuccess(data.user.name, data.user.roles); // 부모(Header)에게 성공했음을 알림
         const { cartItems } = useCartStore.getState();
+
+        onLoginSuccess(data.user.name, data.user.roles); // 부모(Header)에게 성공했음을 알림
         if (cartItems.length > 0) {
           const syncData = cartItems.map((item) => ({
             product_id: item.id,

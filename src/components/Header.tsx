@@ -18,7 +18,6 @@ export default function Header() {
   const { cartItems, clearCart, setCartItems } = useCartStore();
 
   const router = useRouter();
-
   const [isMounted, setIsMounted] = useState(false);
 
   const totalQuantity = cartItems.reduce(
@@ -46,7 +45,7 @@ export default function Header() {
           const res = await fetch("/api/cart");
           const data = (await res.json()) as {
             success: boolean;
-            cart?: {
+            data?: {
               id: number;
               name: string;
               price: number;
@@ -55,9 +54,9 @@ export default function Header() {
             }[];
             message?: string;
           };
-
-          if (data.success && data.cart) {
-            setCartItems(data.cart);
+          if (data.success && data.data) {
+            setCartItems(data.data);
+            console.log(cartItems);
           }
         } catch (error) {
           console.error("장바구니 갱신 에러:", error);

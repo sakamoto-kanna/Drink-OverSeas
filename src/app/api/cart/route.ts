@@ -187,7 +187,6 @@ export async function DELETE(request: Request) {
     );
   }
 }
-// src/app/api/cart/route.ts (파일 맨 아래에 추가)
 
 export async function PUT(request: Request) {
   try {
@@ -228,7 +227,6 @@ export async function PUT(request: Request) {
     const { env } = await getCloudflareContext();
     const db = env.DB as any;
 
-    // 🚀 해당 유저의 특정 상품 수량을 덮어씌웁니다 (UPDATE 구문)
     await db
       .prepare(
         `
