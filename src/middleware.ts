@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   // 1. 요청된 주소가 /notice/write 인지 확인
   if (request.nextUrl.pathname.startsWith("/notice/write")) {
     // 2. 브라우저 쿠키에서 JWT 토큰 추출
