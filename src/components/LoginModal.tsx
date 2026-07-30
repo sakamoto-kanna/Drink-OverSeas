@@ -56,7 +56,7 @@ export default function LoginModal({
       if (data.success) {
         alert(`${data.user.name}님 환영합니다!`);
         onLoginSuccess(data.user.name, data.user.roles); // 부모(Header)에게 성공했음을 알림
-        const { cartItems } = useCartStore.getState();
+        const { cartItems, setCartItems } = useCartStore.getState();
         if (cartItems.length > 0) {
           const syncData = cartItems.map((item) => ({
             product_id: item.id,
@@ -69,6 +69,28 @@ export default function LoginModal({
             body: JSON.stringify({ cart: syncData }),
           });
         }
+        try {
+          // GET API를 호출하여 DB의 최신 장바구니 목록을 가져옵니다.
+          const cartRes = await fetch("/api/cart");
+          const cartData = (await cartRes.json()) as {
+            success: boolean;
+            cart?: {
+              id: number; // DB의 product_id를 프론트엔드 포맷(id)으로 맞춘 형태
+              name: string;
+              price: number;
+              quantity: number;
+              image: string;
+            }[];
+            message?: string;
+          };
+
+          if (cartData.success && cartData.cart) {
+            setCartItems(cartData.cart);
+          }
+        } catch (error) {
+          console.error("장바구니 불러오기 에러:", error);
+        }
+
         onClose(); // 로그인 완료 후 모달 닫기
       } else {
         alert(data.message);

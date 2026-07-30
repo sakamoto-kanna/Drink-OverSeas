@@ -20,6 +20,7 @@ interface CartStore {
   removeFromCart: (id: number) => void;
   clearCart: () => void;
   setCart: (items: CartItem[]) => void;
+  setCartItems: (items: CartItem[]) => void;
 }
 
 // 3. Zustand 스토어 생성 (+ persist 적용)
@@ -29,7 +30,7 @@ export const useCartStore = create<CartStore>()(
       cartItems: [],
 
       setCart: (items) => set({ cartItems: items }),
-
+      setCartItems: (items) => set({ cartItems: items }),
       // 상품 추가 액션
       addToCart: (newItem) =>
         set((state) => {
