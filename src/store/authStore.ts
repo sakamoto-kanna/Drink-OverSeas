@@ -1,5 +1,3 @@
-import { GET } from "@/app/api/cart/route";
-import { METHODS } from "http";
 import { create } from "zustand";
 
 interface AuthState {

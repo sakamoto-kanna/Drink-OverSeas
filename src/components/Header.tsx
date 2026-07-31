@@ -88,7 +88,7 @@ export default function Header() {
     setLogout();
     await fetch("/api/auth/logout", { method: "POST" });
     alert("로그아웃 되었습니다.");
-    await signOut({ callbackUrl: "/" });
+    window.location.href = "/";
   };
 
   return (
@@ -113,7 +113,7 @@ export default function Header() {
               {NAV_ITEMS.map((item) => (
                 <button
                   key={item}
-                  onClick={() => router.push(`${item.toLowerCase()}`)}
+                  onClick={() => router.push(`/${item.toLowerCase()}`)}
                   className="text-left transition-opacity hover:opacity-50"
                 >
                   {item}
@@ -228,7 +228,7 @@ export default function Header() {
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item}
-                  href={`#${item.toLowerCase()}`}
+                  href={`/${item.toLowerCase()}`}
                   className="transition-opacity hover:opacity-50"
                   onClick={() => setIsMobileMenuOpen(false)} // 링크 클릭 시 메뉴 닫기
                 >
