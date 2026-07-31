@@ -101,7 +101,7 @@ export default function MyPage() {
     }).open();
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!isEditing) return;
 
@@ -135,7 +135,8 @@ export default function MyPage() {
       };
       if (data.success) {
         alert("회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
-        router.push("/");
+        // router.push("/");
+        window.location.href = "/";
       } else {
         alert("탈퇴 처리 중 문제가 발생했습니다.");
       }

@@ -75,9 +75,10 @@ export async function GET(req: Request) {
 // ==========================================
 export async function PUT(req: Request) {
   interface UpdateProfileBody {
-    NAME: string;
-    PHONE?: string;
-    ADDRESS?: string;
+    name: string;
+    phone?: string | null;
+    address?: string | null;
+    detailAddress?: string | null;
   }
   try {
     const { env } = await getCloudflareContext();
@@ -104,14 +105,18 @@ export async function PUT(req: Request) {
 
     // 프론트엔드에서 보낸 수정할 데이터 파싱
     const body = (await req.json()) as UpdateProfileBody;
-    const { NAME, PHONE, ADDRESS } = body;
+    const { name, phone, address, detailAddress } = body;
 
     // 최소한의 필수 값 검증 (이름은 빈 값 방지)
-    if (!NAME || NAME.trim() === "") {
+    if (!name || name.trim() === "") {
       return NextResponse.json(
         { success: false, message: "이름은 필수 입력 항목입니다." },
         { status: 400 },
       );
+    }
+    let fullAddress = address || null;
+    if (address && detailAddress) {
+      fullAddress = `${address} ${detailAddress}`;
     }
 
     // DB 정보 업데이트 (비밀번호나 이메일, LOGIN_ID는 여기서 변경하지 않도록 제한)
@@ -119,7 +124,7 @@ export async function PUT(req: Request) {
       .prepare(
         "UPDATE USER_AUTH SET NAME = ?, PHONE = ?, ADDRESS = ? WHERE LOGIN_ID = ?",
       )
-      .bind(NAME.trim(), PHONE || null, ADDRESS || null, loginId)
+      .bind(name.trim(), phone || null, fullAddress || null, loginId)
       .run();
 
     return NextResponse.json(
