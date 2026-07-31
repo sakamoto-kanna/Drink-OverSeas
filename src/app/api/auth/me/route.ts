@@ -51,8 +51,8 @@ export async function GET(request: Request) {
       isLoggedIn: true,
       user: {
         loginId: decoded.loginId,
-        name: decoded.name,
-        roles: (decoded as any).roles || [],
+        name: user,
+        roles: roleList || [],
       },
     });
   } catch (error) {
