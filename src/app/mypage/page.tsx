@@ -17,6 +17,7 @@ export default function MyPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { checkLogin } = useAuthStore();
 
   // 🌟 1. 기본 유저 정보 상태
   const [formData, setFormData] = useState({
@@ -102,8 +103,7 @@ export default function MyPage() {
     }).open();
   };
 
-  const handleUpdate = async (e: React.SubmitEvent) => {
-    const { checkLogin } = useAuthStore();
+  const handleUpdate = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isEditing) return;
 
