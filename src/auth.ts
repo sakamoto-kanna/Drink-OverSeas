@@ -2,17 +2,17 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Naver from "next-auth/providers/naver";
 import Kakao from "next-auth/providers/kakao";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { drizzle } from "drizzle-orm/d1";
 import { cookies } from "next/headers";
 
 export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
   const { env } = await getCloudflareContext();
-  const db = drizzle(env.DB);
 
   return {
-    adapter: DrizzleAdapter(db),
+    session: {
+      strategy: "jwt",
+    },
+
     secret: env.AUTH_SECRET,
     providers: [
       Google({
@@ -34,12 +34,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
     callbacks: {
       async signIn({ user, account }) {
         try {
+          // Cloudflare D1 바인딩 객체를 직접 사용
           const rawDb = env.DB;
           const cookieStore = await cookies();
 
           const provider = account?.provider;
           const providerAccountId = account?.providerAccountId;
-          const socialEmail = user.email;
+          // 🚀 카카오는 이메일을 안 줄 수도 있으므로 빈 문자열 처리 안전장치 추가
+          const socialEmail = user.email || "";
 
           if (!provider || !providerAccountId) return false;
 
@@ -47,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
 
           if (currentToken) {
             // =========================================================
-            // 🚀 갈래길 A: 마이페이지에서 [연동하기(Connect)]를 누른 경우
+            // 갈래길 A: 마이페이지에서 [연동하기]
             // =========================================================
             const { verifyToken } = await import("@/lib/jwt");
             const decoded = await verifyToken(
@@ -89,7 +91,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
             return true;
           } else {
             // =========================================================
-            // 🚀 갈래길 B: 로그인 모달에서 [소셜 로그인]을 누른 경우
+            // 갈래길 B: 로그인 모달에서 [소셜 로그인]
             // =========================================================
             const linkedAccount = await rawDb
               .prepare(
@@ -110,8 +112,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                 .first<{ NAME: string }>();
               if (authUser) targetName = authUser.NAME;
             } else {
-              // B-2: 연동 기록은 없지만, 같은 이메일로 가입한 내역이 있는지 조회
-              // 🌟 보안 패치 적용 위치: IS_VERIFIED를 함께 불러옵니다.
+              // B-2: 이메일로 가입된 기존 로컬 계정 찾기
               const existingUser = await rawDb
                 .prepare(
                   "SELECT LOGIN_ID, NAME, IS_VERIFIED FROM USER_AUTH WHERE EMAIL = ?",
@@ -124,7 +125,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                 }>();
 
               if (existingUser) {
-                // 🚨 해커 방어막 작동: 이메일 인증을 안 한 계정이라면 연동 거부
+                // 이메일 미인증 계정이면 방어
                 if (existingUser.IS_VERIFIED === 0) {
                   console.error(
                     "보안 경고: 미인증된 로컬 계정으로의 소셜 연동 시도 차단",
@@ -132,12 +133,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                   return false;
                 }
 
-                // 정상적으로 인증된 내 계정이라면 연동 진행
                 targetLoginId = existingUser.LOGIN_ID;
                 targetName = existingUser.NAME;
-
                 const generatedId = crypto.randomUUID();
                 const accountType = account.type || "oauth";
+
                 await rawDb
                   .prepare(
                     `
@@ -154,9 +154,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                   )
                   .run();
               } else {
-                // B-3: 완전히 처음 온 유저 (자동 회원가입)
+                // B-3: 완전 신규 유저 (자동 회원가입)
                 const newLoginId =
-                  (socialEmail?.split("@")[0] || "user") + `_${provider}`;
+                  (socialEmail.split("@")[0] || "user") + `_${provider}`;
                 const generatedId = crypto.randomUUID();
                 const accountType = account.type || "oauth";
 
@@ -167,7 +167,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                     VALUES (?, 'OAUTH_LINKED_ACCOUNT', ?, ?, 1)
                   `,
                   )
-                  .bind(newLoginId, targetName, socialEmail || "")
+                  .bind(newLoginId, targetName, socialEmail)
                   .run();
 
                 await rawDb
@@ -190,7 +190,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
               }
             }
 
-            // 🌟 마지막 커스텀 JWT 토큰 굽기 로직
             const { signToken } = await import("@/lib/jwt");
             const { results: roles } = await rawDb
               .prepare("SELECT ROLE_NAME FROM USER_ROLES WHERE LOGIN_ID = ?")
@@ -213,16 +212,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
               path: "/",
             });
           }
-          return true;
+          return true; // 성공 시 로그인 허용
         } catch (error) {
           console.error("NextAuth SignIn Callback Error:", error);
-          return false;
+          return false; // 에러 발생 시 /auth-error 페이지로 리다이렉트
         }
       },
-      async session({ session, user }) {
-        if (session.user) {
-          session.user.id = user.id;
-        }
+      // 세션 콜백은 사실상 쓰지 않지만 (우리는 쿠키로 하니까), 타입 에러 방지용으로 둡니다.
+      async session({ session }) {
         return session;
       },
     },
@@ -232,3 +229,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
     },
   };
 });
+
+export const { GET, POST } = handlers;
