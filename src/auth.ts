@@ -155,8 +155,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
                   .run();
               } else {
                 // B-3: 완전 신규 유저 (자동 회원가입)
-                const newLoginId =
-                  (socialEmail.split("@")[0] || "user") + `_${provider}`;
+                // const newLoginId =
+                //   (socialEmail.split("@")[0] || "user") + `_${provider}`;
+                const newLoginId = `oauth_${crypto.randomUUID().replace(/-/g, "")}`; //uuid 생성
                 const generatedId = crypto.randomUUID();
                 const accountType = account.type || "oauth";
 
