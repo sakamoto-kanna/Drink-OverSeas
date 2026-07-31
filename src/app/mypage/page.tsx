@@ -139,8 +139,8 @@ export default function MyPage() {
       };
       if (data.success) {
         alert("회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
-        // router.push("/");
-        window.location.href = "/";
+        router.push("/");
+        // window.location.href = "/";
       } else {
         alert("탈퇴 처리 중 문제가 발생했습니다.");
       }
