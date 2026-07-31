@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       isLoggedIn: true,
       user: {
         loginId: decoded.loginId,
-        name: user,
+        name: user.NAME,
         roles: roleList || [],
       },
     });
