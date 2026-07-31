@@ -1,3 +1,5 @@
+import { GET } from "@/app/api/cart/route";
+import { METHODS } from "http";
 import { create } from "zustand";
 
 interface AuthState {
@@ -19,7 +21,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkLogin: async () => {
     try {
       set({ isAuthLoading: true });
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", {
+        method: "GET",
+        cache: "no-store",
+      });
 
       const data = (await res.json()) as {
         isLoggedIn: boolean;
