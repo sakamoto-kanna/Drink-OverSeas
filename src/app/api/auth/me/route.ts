@@ -2,6 +2,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     // 1. Cloudflare 환경변수 안전하게 가져오기

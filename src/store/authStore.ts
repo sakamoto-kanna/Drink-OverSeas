@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isAuthLoading: true });
       const res = await fetch("/api/auth/me", {
         method: "GET",
-        cache: "no-store",
+        cache: "no-cache",
       });
 
       const data = (await res.json()) as {

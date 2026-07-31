@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { signIn } from "next-auth/react";
+import { useAuthStore } from "@/store/authStore";
 
 declare global {
   interface Window {
@@ -102,6 +103,7 @@ export default function MyPage() {
   };
 
   const handleUpdate = async (e: React.SubmitEvent) => {
+    const { checkLogin } = useAuthStore();
     e.preventDefault();
     if (!isEditing) return;
 
@@ -118,6 +120,7 @@ export default function MyPage() {
     if (data.success) {
       alert("개인정보가 성공적으로 수정되었습니다.");
       setIsEditing(false);
+      await checkLogin();
       window.location.href = "/";
     } else {
       alert(data.message || "수정에 실패했습니다.");
