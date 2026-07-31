@@ -167,8 +167,67 @@ export default function MyPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm tracking-widest uppercase">
-        Loading...
+      <div className="flex min-h-screen justify-center bg-[#FDFCFB] px-4 py-20 text-black">
+        <div className="w-full max-w-lg">
+          {/* 뒤로가기 & 타이틀 스켈레톤 */}
+          <div className="mb-8 h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+          <div className="mb-10 h-8 w-40 animate-pulse rounded bg-gray-200"></div>
+
+          <div className="border border-gray-100 bg-white p-10 shadow-sm">
+            {/* 프로필 정보 헤더 스켈레톤 */}
+            <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-4">
+              <div className="h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+              <div className="h-4 w-10 animate-pulse rounded bg-gray-200"></div>
+            </div>
+
+            {/* 입력 폼 스켈레톤 (ID, Email, Name, Phone, Address) */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="mb-2 h-3 w-8 animate-pulse rounded bg-gray-200"></div>
+                  <div className="h-8 w-full animate-pulse border-b border-gray-100 bg-gray-50/50"></div>
+                </div>
+                <div>
+                  <div className="mb-2 h-3 w-10 animate-pulse rounded bg-gray-200"></div>
+                  <div className="h-8 w-full animate-pulse border-b border-gray-100 bg-gray-50/50"></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="mb-2 h-3 w-10 animate-pulse rounded bg-gray-200"></div>
+                  <div className="h-8 w-full animate-pulse border-b border-gray-100 bg-gray-50/50"></div>
+                </div>
+                <div>
+                  <div className="mb-2 h-3 w-12 animate-pulse rounded bg-gray-200"></div>
+                  <div className="h-8 w-full animate-pulse border-b border-gray-100 bg-gray-50/50"></div>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 h-3 w-14 animate-pulse rounded bg-gray-200"></div>
+                <div className="h-8 w-full animate-pulse border-b border-gray-100 bg-gray-50/50"></div>
+              </div>
+            </div>
+
+            {/* 소셜 연동 스켈레톤 */}
+            <div className="mt-12 border-t border-gray-200 pt-8">
+              <div className="mb-6 h-4 w-32 animate-pulse rounded bg-gray-200"></div>
+              <div className="space-y-3">
+                <div className="h-14 w-full animate-pulse border border-gray-100 bg-gray-50/50"></div>
+                <div className="h-14 w-full animate-pulse border border-gray-100 bg-gray-50/50"></div>
+                <div className="h-14 w-full animate-pulse border border-gray-100 bg-gray-50/50"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Danger Zone 스켈레톤 */}
+          <div className="mt-12 flex flex-col items-center border-t border-gray-200 pt-8 text-center">
+            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-200"></div>
+            <div className="mb-6 h-3 w-64 animate-pulse rounded bg-gray-200"></div>
+            <div className="h-10 w-32 animate-pulse rounded bg-gray-200"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -317,7 +376,7 @@ export default function MyPage() {
               )}
             </form>
 
-            {/* 🌟 새로 추가된 소셜 연동 관리 섹션 */}
+            {/* 새로 추가된 소셜 연동 관리 섹션 */}
             <div className="mt-12 border-t border-gray-200 pt-8">
               <h2 className="mb-6 text-sm font-bold tracking-widest text-gray-800 uppercase">
                 Linked Accounts
