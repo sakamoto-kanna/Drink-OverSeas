@@ -118,7 +118,7 @@ export default function MyPage() {
     if (data.success) {
       alert("개인정보가 성공적으로 수정되었습니다.");
       setIsEditing(false);
-      router.refresh();
+      window.location.href = "/";
     } else {
       alert(data.message || "수정에 실패했습니다.");
     }

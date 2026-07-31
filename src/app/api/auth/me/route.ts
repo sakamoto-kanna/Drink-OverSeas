@@ -24,6 +24,26 @@ export async function GET(request: Request) {
       return Response.json({ isLoggedIn: false });
     }
 
+    const loginId = decoded.loginId as string;
+    const db = env.DB;
+
+    const user = await db
+      .prepare("SELECT NAME FROM USER_AUTH WHERE LOGIN_ID = ?")
+      .bind(loginId)
+      .first<{ NAME: string }>();
+
+    // 만약 DB에서 유저가 삭제되었다면 강제 로그아웃 처리
+    if (!user) {
+      return Response.json({ isLoggedIn: false });
+    }
+
+    const { results: roles } = await db
+      .prepare("SELECT ROLE_NAME FROM USER_ROLES WHERE LOGIN_ID = ?")
+      .bind(loginId)
+      .all<{ ROLE_NAME: string }>();
+    const roleList =
+      roles.length > 0 ? roles.map((r) => r.ROLE_NAME) : ["ROLE_USER"];
+
     // 4. 검증 성공 시 유저 정보와 함께 로그인 상태(true) 반환
     return Response.json({
       isLoggedIn: true,
